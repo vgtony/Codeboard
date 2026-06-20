@@ -1,31 +1,12 @@
-import { Component, signal } from '@angular/core';
-
-interface Card {
-  readonly title: string;
-}
-
-interface BoardList {
-  readonly title: string;
-  readonly cards: readonly Card[];
-}
-
-interface Board {
-  readonly title: string;
-  readonly lists: readonly BoardList[];
-}
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
+  imports: [RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App {
-  protected readonly board = signal<Board>({
-    title: 'Codeboard',
-    lists: [
-      { title: 'Todo', cards: [{ title: 'Learn Angular boot flow' }] },
-      { title: 'Doing', cards: [{ title: 'Build the UI-only board' }] },
-      { title: 'Done', cards: [{ title: 'Create the project' }] }
-    ]
-  });
-}
+export class App {}
+
+  imports: [RouterOutlet]

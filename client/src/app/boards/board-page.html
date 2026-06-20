@@ -1,7 +1,7 @@
 <main class="min-h-dvh bg-slate-100 p-6 text-slate-900">
   <h1 class="mb-6 text-3xl font-bold">{{ board().title }}</h1>
 
-  <div class="mb-6 flex gap-2">
+  <div class="mb-6 flex flex-wrap gap-2">
     <input
       #newCardTitle
       class="rounded border border-slate-300 px-3 py-2"
@@ -13,16 +13,94 @@
       (click)="addTodoCard(newCardTitle.value); newCardTitle.value = ''">
       Add card
     </button>
+
+    <input
+      #newListTitle
+      class="rounded border border-slate-300 px-3 py-2"
+      placeholder="New list"
+      aria-label="New list title">
+    <button
+      type="button"
+      class="rounded bg-slate-800 px-4 py-2 font-semibold text-white"
+      (click)="addList(newListTitle.value); newListTitle.value = ''">
+      Add list
+    </button>
   </div>
 
   <section class="grid gap-4 md:grid-cols-3" aria-label="Board lists">
-    @for (list of board().lists; track list.title) {
+    @for (list of board().lists; track list.id) {
       <article class="rounded bg-slate-200 p-3">
         <h2 class="mb-3 font-semibold">{{ list.title }}</h2>
 
         <ul class="grid gap-2">
-          @for (card of list.cards; track card.title) {
-            <li class="rounded bg-white p-3 shadow-sm">{{ card.title }}</li>
+          @for (card of list.cards; track card.id) {
+            <li class="rounded bg-white p-3 shadow-sm">
+              @if (editingCardId() === card.id) {
+                <div class="flex flex-wrap gap-2">
+                  <input
+                    #editCardTitle
+                    class="min-w-0 flex-1 rounded border border-slate-300 px-3 py-2"
+                    [value]="card.title"
+                    [attr.aria-label]="'Edit card ' + card.title">
+                  <button
+                    type="button"
+                    class="rounded bg-blue-600 px-3 py-1 text-sm font-semibold text-white"
+                    (click)="renameCard(card.id, editCardTitle.value)">
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded bg-slate-200 px-3 py-1 text-sm font-semibold"
+                    (click)="cancelEdit()">
+                    Cancel
+                  </button>
+                </div>
+              } @else {
+                <p class="mb-2">{{ card.title }}</p>
+
+                <div class="flex gap-2">
+                  <button
+                    type="button"
+                    class="rounded bg-slate-200 px-3 py-1 text-sm font-semibold"
+                    (click)="openMoveMenu(card.id, list.id)">
+                    Move
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded bg-slate-200 px-3 py-1 text-sm font-semibold"
+                    (click)="editCard(card.id)">
+                    Edit
+                  </button>
+                </div>
+              }
+
+              @if (moveMenu()?.cardId === card.id && moveMenu()?.listId === list.id) {
+                <div class="mt-2 rounded border border-slate-300 bg-white p-2 shadow-sm">
+                  <div class="mb-2 flex items-center justify-between gap-2">
+                    <p class="text-sm font-semibold">Move To</p>
+                    <button
+                      type="button"
+                      class="text-sm font-semibold text-slate-600"
+                      (click)="closeMoveMenu()">
+                      Cancel
+                    </button>
+                  </div>
+
+                  <div class="flex flex-wrap gap-2">
+                    @for (targetList of board().lists; track targetList.id) {
+                      @if (targetList.id !== list.id) {
+                        <button
+                          type="button"
+                          class="rounded bg-slate-800 px-3 py-1 text-sm font-semibold text-white"
+                          (click)="moveCard(card.id, list.id, targetList.id)">
+                          {{ targetList.title }}
+                        </button>
+                      }
+                    }
+                  </div>
+                </div>
+              }
+            </li>
           }
         </ul>
       </article>

@@ -10,6 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -33,6 +35,26 @@ class BoardControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(1)))
         .andExpect(jsonPath("$[0].title").value("Codeboard"));
+  }
+
+  @Test
+  void getsBoardById() throws Exception {
+    Board board = new Board("Codeboard", List.of());
+    when(boards.findBoard(board.id())).thenReturn(Optional.of(board));
+
+    mvc.perform(get("/api/boards/{boardId}", board.id()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(board.id().toString()))
+        .andExpect(jsonPath("$.title").value("Codeboard"));
+  }
+
+  @Test
+  void returnsNotFoundForMissingBoard() throws Exception {
+    UUID boardId = UUID.randomUUID();
+    when(boards.findBoard(boardId)).thenReturn(Optional.empty());
+
+    mvc.perform(get("/api/boards/{boardId}", boardId))
+        .andExpect(status().isNotFound());
   }
 
   @Test

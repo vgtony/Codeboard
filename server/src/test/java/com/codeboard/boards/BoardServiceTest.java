@@ -15,4 +15,11 @@ class BoardServiceTest {
     assertThat(board.lists()).extracting(BoardList::title)
         .containsExactly("Todo", "Doing", "Done");
   }
+
+  @Test
+  void findsBoardById() {
+    Board board = service.createBoard("Interview Prep");
+
+    assertThat(service.findBoard(board.id())).contains(board);
+  }
 }

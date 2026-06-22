@@ -2,6 +2,8 @@ package com.codeboard.boards;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,6 +18,12 @@ class BoardService {
 
   List<Board> findBoards() {
     return List.copyOf(boards);
+  }
+
+  Optional<Board> findBoard(UUID id) {
+    return boards.stream()
+        .filter(board -> board.id().equals(id))
+        .findFirst();
   }
 
   Board createBoard(String title) {

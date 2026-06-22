@@ -174,6 +174,22 @@ describe('BoardPage', () => {
     expect(compiled.querySelector('input[aria-label^="Edit card"]')).toBeNull();
   });
 
+  it('should delete a card', () => {
+    const fixture = TestBed.createComponent(BoardPage);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const card = [...compiled.querySelectorAll('li')]
+      .find(item => item.textContent?.includes('Learn Angular boot flow')) as HTMLElement;
+    const deleteButton = [...card.querySelectorAll('button')]
+      .find(item => item.textContent?.trim() === 'Delete') as HTMLButtonElement;
+
+    deleteButton.click();
+    fixture.detectChanges();
+
+    expect(compiled.textContent).not.toContain('Learn Angular boot flow');
+  });
+
   it('should not offer the current list as a move target', () => {
     const fixture = TestBed.createComponent(BoardPage);
     fixture.detectChanges();
@@ -208,5 +224,109 @@ describe('BoardPage', () => {
 
     expect(compiled.textContent).toContain('Review');
     expect(input.value).toBe('');
+  });
+
+  it('should rename a list', () => {
+    const fixture = TestBed.createComponent(BoardPage);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const todoList = [...compiled.querySelectorAll('article')]
+      .find(item => item.querySelector('h2')?.textContent?.includes('Todo')) as HTMLElement;
+    const edit = todoList.querySelector('button') as HTMLButtonElement;
+
+    edit.click();
+    fixture.detectChanges();
+
+    const input = compiled.querySelector('[aria-label="Edit list Todo"]') as HTMLInputElement;
+    const save = [...todoList.querySelectorAll('button')]
+      .find(item => item.textContent?.trim() === 'Save') as HTMLButtonElement;
+
+    input.value = 'Backlog';
+    save.click();
+    fixture.detectChanges();
+
+    expect(compiled.textContent).toContain('Backlog');
+    expect(compiled.textContent).not.toContain('Todo');
+  });
+
+  it('should cancel editing a list', () => {
+    const fixture = TestBed.createComponent(BoardPage);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const todoList = [...compiled.querySelectorAll('article')]
+      .find(item => item.querySelector('h2')?.textContent?.includes('Todo')) as HTMLElement;
+    const edit = todoList.querySelector('button') as HTMLButtonElement;
+
+    edit.click();
+    fixture.detectChanges();
+
+    const cancel = [...todoList.querySelectorAll('button')]
+      .find(item => item.textContent?.trim() === 'Cancel') as HTMLButtonElement;
+
+    cancel.click();
+    fixture.detectChanges();
+
+    expect(compiled.querySelector('input[aria-label^="Edit list"]')).toBeNull();
+    expect(compiled.textContent).toContain('Todo');
+  });
+
+  it('should ignore blank list titles', () => {
+    const fixture = TestBed.createComponent(BoardPage);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const todoList = [...compiled.querySelectorAll('article')]
+      .find(item => item.querySelector('h2')?.textContent?.includes('Todo')) as HTMLElement;
+    const edit = todoList.querySelector('button') as HTMLButtonElement;
+
+    edit.click();
+    fixture.detectChanges();
+
+    const input = compiled.querySelector('[aria-label="Edit list Todo"]') as HTMLInputElement;
+    const save = [...todoList.querySelectorAll('button')]
+      .find(item => item.textContent?.trim() === 'Save') as HTMLButtonElement;
+
+    input.value = '   ';
+    save.click();
+    fixture.detectChanges();
+
+    expect(compiled.textContent).toContain('Todo');
+    expect(compiled.querySelector('input[aria-label^="Edit list"]')).toBeNull();
+  });
+
+  it('should delete an empty list', () => {
+    const fixture = TestBed.createComponent(BoardPage);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const input = compiled.querySelector('[aria-label="New list title"]') as HTMLInputElement;
+    const addList = [...compiled.querySelectorAll('button')]
+      .find(item => item.textContent?.includes('Add list')) as HTMLButtonElement;
+
+    input.value = 'Review';
+    addList.click();
+    fixture.detectChanges();
+
+    const reviewList = [...compiled.querySelectorAll('article')]
+      .find(item => item.querySelector('h2')?.textContent?.includes('Review')) as HTMLElement;
+    const deleteList = reviewList.querySelector('[aria-label="Delete list Review"]') as HTMLButtonElement;
+
+    deleteList.click();
+    fixture.detectChanges();
+
+    expect(compiled.textContent).not.toContain('Review');
+  });
+
+  it('should not show delete for non-empty lists', () => {
+    const fixture = TestBed.createComponent(BoardPage);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const todoList = [...compiled.querySelectorAll('article')]
+      .find(item => item.querySelector('h2')?.textContent?.includes('Todo')) as HTMLElement;
+
+    expect(todoList.querySelector('[aria-label="Delete list Todo"]')).toBeNull();
   });
 });

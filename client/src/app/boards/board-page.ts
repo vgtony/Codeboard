@@ -1,20 +1,5 @@
-import { Component, signal } from '@angular/core';
-
-interface Card {
-  readonly id: number;
-  readonly title: string;
-}
-
-interface BoardList {
-  readonly id: number;
-  readonly title: string;
-  readonly cards: readonly Card[];
-}
-
-interface Board {
-  readonly title: string;
-  readonly lists: readonly BoardList[];
-}
+import { Component, inject, signal } from '@angular/core';
+import { BoardStore } from './board-store';
 
 interface MoveMenu {
   readonly cardId: number;
@@ -26,32 +11,15 @@ interface MoveMenu {
   templateUrl: './board-page.html'
 })
 export class BoardPage {
-  private nextCardId = 4;
-  private nextListId = 4;
+  private readonly store = inject(BoardStore);
 
-  protected readonly board = signal<Board>({
-    title: 'Codeboard',
-    lists: [
-      { id: 1, title: 'Todo', cards: [{ id: 1, title: 'Learn Angular boot flow' }] },
-      { id: 2, title: 'Doing', cards: [{ id: 2, title: 'Build the UI-only board' }] },
-      { id: 3, title: 'Done', cards: [{ id: 3, title: 'Create the project' }] }
-    ]
-  });
+  protected readonly board = this.store.board;
   protected readonly moveMenu = signal<MoveMenu | null>(null);
   protected readonly editingCardId = signal<number | null>(null);
+  protected readonly editingListId = signal<number | null>(null);
 
   protected addTodoCard(title: string): void {
-    const cardTitle = title.trim();
-    if (!cardTitle) {
-      return;
-    }
-
-    this.board.update(board => ({
-      ...board,
-      lists: board.lists.map(list =>
-        list.id === 1 ? { ...list, cards: [...list.cards, { id: this.nextCardId++, title: cardTitle }] } : list
-      )
-    }));
+    this.store.addTodoCard(title);
   }
 
   protected openMoveMenu(cardId: number, listId: number): void {
@@ -65,6 +33,7 @@ export class BoardPage {
 
   protected editCard(cardId: number): void {
     this.moveMenu.set(null);
+    this.editingListId.set(null);
     this.editingCardId.set(cardId);
   }
 
@@ -73,61 +42,48 @@ export class BoardPage {
   }
 
   protected renameCard(cardId: number, title: string): void {
-    const cardTitle = title.trim();
-    if (!cardTitle) {
-      this.editingCardId.set(null);
-      return;
-    }
-
-    this.board.update(board => ({
-      ...board,
-      lists: board.lists.map(list => ({
-        ...list,
-        cards: list.cards.map(card =>
-          card.id === cardId ? { ...card, title: cardTitle } : card
-        )
-      }))
-    }));
+    this.store.renameCard(cardId, title);
     this.editingCardId.set(null);
   }
 
+  protected deleteCard(cardId: number): void {
+    this.store.deleteCard(cardId);
+    if (this.editingCardId() === cardId) {
+      this.editingCardId.set(null);
+    }
+    if (this.moveMenu()?.cardId === cardId) {
+      this.moveMenu.set(null);
+    }
+  }
+
+  protected editList(listId: number): void {
+    this.moveMenu.set(null);
+    this.editingCardId.set(null);
+    this.editingListId.set(listId);
+  }
+
+  protected cancelListEdit(): void {
+    this.editingListId.set(null);
+  }
+
+  protected renameList(listId: number, title: string): void {
+    this.store.renameList(listId, title);
+    this.editingListId.set(null);
+  }
+
+  protected deleteList(listId: number): void {
+    this.store.deleteList(listId);
+    if (this.editingListId() === listId) {
+      this.editingListId.set(null);
+    }
+  }
+
   protected moveCard(cardId: number, fromListId: number, toListId: number): void {
-    this.board.update(board => {
-      const fromList = board.lists.find(list => list.id === fromListId);
-      if (!fromList || fromListId === toListId) {
-        return board;
-      }
-
-      const card = fromList.cards.find(item => item.id === cardId);
-      if (!card) {
-        return board;
-      }
-
-      return {
-        ...board,
-        lists: board.lists.map(list => {
-          if (list.id === fromListId) {
-            return { ...list, cards: list.cards.filter(item => item.id !== cardId) };
-          }
-          if (list.id === toListId) {
-            return { ...list, cards: [...list.cards, card] };
-          }
-          return list;
-        })
-      };
-    });
+    this.store.moveCard(cardId, fromListId, toListId);
     this.moveMenu.set(null);
   }
 
   protected addList(title: string): void {
-    const listTitle = title.trim();
-    if (!listTitle) {
-      return;
-    }
-
-    this.board.update(board => ({
-      ...board,
-      lists: [...board.lists, { id: this.nextListId++, title: listTitle, cards: [] }]
-    }));
+    this.store.addList(title);
   }
 }

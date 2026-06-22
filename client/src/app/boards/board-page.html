@@ -30,7 +30,46 @@
   <section class="grid gap-4 md:grid-cols-3" aria-label="Board lists">
     @for (list of board().lists; track list.id) {
       <article class="rounded bg-slate-200 p-3">
-        <h2 class="mb-3 font-semibold">{{ list.title }}</h2>
+        @if (editingListId() === list.id) {
+          <div class="mb-3 flex flex-wrap gap-2">
+            <input
+              #editListTitle
+              class="min-w-0 flex-1 rounded border border-slate-300 px-3 py-2"
+              [value]="list.title"
+              [attr.aria-label]="'Edit list ' + list.title">
+            <button
+              type="button"
+              class="rounded bg-blue-600 px-3 py-1 text-sm font-semibold text-white"
+              (click)="renameList(list.id, editListTitle.value)">
+              Save
+            </button>
+            <button
+              type="button"
+              class="rounded bg-white px-3 py-1 text-sm font-semibold"
+              (click)="cancelListEdit()">
+              Cancel
+            </button>
+          </div>
+        } @else {
+          <div class="mb-3 flex items-center justify-between gap-2">
+            <h2 class="font-semibold">{{ list.title }}</h2>
+            <button
+              type="button"
+              class="rounded bg-white px-3 py-1 text-sm font-semibold"
+              (click)="editList(list.id)">
+              Edit
+            </button>
+            @if (list.cards.length === 0) {
+              <button
+                type="button"
+                class="rounded bg-red-100 px-3 py-1 text-sm font-semibold text-red-700"
+                [attr.aria-label]="'Delete list ' + list.title"
+                (click)="deleteList(list.id)">
+                Delete
+              </button>
+            }
+          </div>
+        }
 
         <ul class="grid gap-2">
           @for (card of list.cards; track card.id) {
@@ -70,6 +109,12 @@
                     class="rounded bg-slate-200 px-3 py-1 text-sm font-semibold"
                     (click)="editCard(card.id)">
                     Edit
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded bg-red-100 px-3 py-1 text-sm font-semibold text-red-700"
+                    (click)="deleteCard(card.id)">
+                    Delete
                   </button>
                 </div>
               }

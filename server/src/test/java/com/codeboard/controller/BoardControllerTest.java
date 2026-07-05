@@ -1,14 +1,19 @@
-package com.codeboard.boards;
+package com.codeboard.controller;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.codeboard.model.Board;
+import com.codeboard.service.BoardService;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -75,5 +80,55 @@ class BoardControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"title\":\"   \"}"))
         .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void renamesBoard() throws Exception {
+    Board board = new Board("Project Plan", List.of());
+    when(boards.renameBoard(eq(board.id()), anyString())).thenReturn(Optional.of(board));
+
+    mvc.perform(patch("/api/boards/{boardId}", board.id())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"title\":\"Project Plan\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(board.id().toString()))
+        .andExpect(jsonPath("$.title").value("Project Plan"));
+  }
+
+  @Test
+  void returnsNotFoundWhenRenamingMissingBoard() throws Exception {
+    UUID boardId = UUID.randomUUID();
+    when(boards.renameBoard(eq(boardId), anyString())).thenReturn(Optional.empty());
+
+    mvc.perform(patch("/api/boards/{boardId}", boardId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"title\":\"Project Plan\"}"))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void rejectsBlankRenameTitle() throws Exception {
+    mvc.perform(patch("/api/boards/{boardId}", UUID.randomUUID())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"title\":\"   \"}"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void deletesBoard() throws Exception {
+    UUID boardId = UUID.randomUUID();
+    when(boards.deleteBoard(boardId)).thenReturn(true);
+
+    mvc.perform(delete("/api/boards/{boardId}", boardId))
+        .andExpect(status().isNoContent());
+  }
+
+  @Test
+  void returnsNotFoundWhenDeletingMissingBoard() throws Exception {
+    UUID boardId = UUID.randomUUID();
+    when(boards.deleteBoard(boardId)).thenReturn(false);
+
+    mvc.perform(delete("/api/boards/{boardId}", boardId))
+        .andExpect(status().isNotFound());
   }
 }

@@ -1,29 +1,29 @@
-package com.codeboard.boards;
+package com.codeboard.model;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-class BoardList {
+public class BoardList {
   private final UUID id;
   private final List<Card> cards;
   private final String title;
 
-  BoardList(String title, List<Card> cards) {
+  public BoardList(String title, List<Card> cards) {
     this.id = UUID.randomUUID();
     this.title = title;
     this.cards = new ArrayList<>(cards);
   }
 
-  UUID id() {
+  public UUID id() {
     return id;
   }
 
-  String title() {
+  public String title() {
     return title;
   }
 
-  List<Card> cards() {
+  public List<Card> cards() {
     return List.copyOf(cards);
   }
 }

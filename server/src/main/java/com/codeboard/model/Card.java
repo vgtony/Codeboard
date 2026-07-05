@@ -1,21 +1,21 @@
-package com.codeboard.boards;
+package com.codeboard.model;
 
 import java.util.UUID;
 
-class Card {
+public class Card {
   private final UUID id;
   private final String title;
 
-  Card(String title) {
+  public Card(String title) {
     this.id = UUID.randomUUID();
     this.title = title;
   }
 
-  UUID id() {
+  public UUID id() {
     return id;
   }
 
-  String title() {
+  public String title() {
     return title;
   }
 }
